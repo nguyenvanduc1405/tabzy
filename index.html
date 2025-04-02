@@ -42,8 +42,12 @@
       <div id="tabC">TabC CONTENT</div>
       <script src="./src/tabzy.js"></script>
       <script>
-         const tabzy1 = new Tabzy("#tab-1");
-         const tabzy2 = new Tabzy("#tab-2");
+         const tabzy1 = new Tabzy("#tab-1", {
+            remember: true,
+         });
+         const tabzy2 = new Tabzy("#tab-2", {
+            remember: true,
+         });
       </script>
    </body>
 </html>

@@ -28,27 +28,40 @@ function Tabzy(selector, options = {}) {
    this.opt = Object.assign(
       {
          activeClassName: "tabzy--active",
+         remember: false,
       },
       options
    );
    this._originHTML = this.container.innerHTML;
+   this._cleanRegex = /[^a-zA-Z0-9]/g;
+   this.paramsKey = selector.replace(this._cleanRegex, "");
    this._init();
 }
 
 Tabzy.prototype._init = function () {
-   const tab = this.tabs[0];
+   let params = new URLSearchParams(location.search);
+   let keyParams = params.get(this.paramsKey);
+   const tab =
+      (this.opt.remember &&
+         keyParams &&
+         this.tabs.find(
+            (tab) =>
+               tab.getAttribute("href").replace(this._cleanRegex, "") ===
+               keyParams
+         )) ||
+      this.tabs[0];
    this.tabs.forEach((tab) => {
       tab.onclick = (event) => this._handleActiveTabClick(event, tab);
    });
-   this._tryActiveTab(tab);
+   this._activeTab(tab, false);
 };
 
 Tabzy.prototype._handleActiveTabClick = function (event, tab) {
    event.preventDefault();
-   this._tryActiveTab(tab);
+   this._activeTab(tab);
 };
 
-Tabzy.prototype._tryActiveTab = function (tab) {
+Tabzy.prototype._activeTab = function (tab, saveUpdateURL = this.opt.remember) {
    this.tabs.forEach((tab) => {
       tab.closest("li").classList.remove(this.opt.activeClassName);
    });
@@ -56,6 +69,15 @@ Tabzy.prototype._tryActiveTab = function (tab) {
    this.panels.forEach((panel) => (panel.hidden = true));
    const panel = document.querySelector(tab.getAttribute("href"));
    panel.hidden = false;
+
+   if (saveUpdateURL) {
+      const params = new URLSearchParams(location.search);
+      params.set(
+         this.paramsKey,
+         tab.getAttribute("href").replace(this._cleanRegex, "")
+      );
+      history.replaceState(null, null, `?${params}`);
+   }
 };
 
 Tabzy.prototype.switch = function (input) {
@@ -73,7 +95,7 @@ Tabzy.prototype.switch = function (input) {
       console.error(`Tabzy: Invalid input '${input}'`);
       return;
    }
-   this._tryActiveTab(tab);
+   this._activeTab(tab);
 };
 
 Tabzy.prototype.destroy = function () {
